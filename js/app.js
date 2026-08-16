@@ -367,19 +367,8 @@
         return;
       }
       const notes = getNotes();
-      const rows = [];
-      const seen = new Set();
-      for (const [key, entry] of Object.entries(notes)) {
-        if (!entry || !Array.isArray(entry.items) || !key.includes(":")) continue;
-        entry.items.forEach((it) => {
-          if (!it.t) return;
-          const noteId = "h" + simpleHash(key + "::" + it.t);
-          const rk = key + "::" + noteId;
-          if (seen.has(rk)) return;
-          seen.add(rk);
-          rows.push({ note_id: noteId, word_key: key, text: it.t, user_id: uid });
-        });
-      }
+      const { buildShareRows } = await import("./share-rows.mjs?v=1");
+      const rows = buildShareRows(notes, uid, simpleHash);
       const { data: existing, error: selectError } = await sb.from("note_shares").select("note_id").eq("user_id", uid);
       if (selectError) throw selectError;
       const keep = new Set(rows.map((r) => r.note_id));

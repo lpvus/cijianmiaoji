@@ -12,7 +12,14 @@ for (const id of ["shareToggle", "syncNowBtn", "syncPushBtn", "authArea", "feedb
 for (const symbol of ["authLogin", "authSignup", "syncNow", "syncShares", "openPool", "submitFeedback"]) {
   assert.match(app, new RegExp(`function\\s+${symbol}\\b`), `missing ${symbol}`);
 }
-for (const asset of ["./index.html", "./css/style.css?v=5", "./js/app.js?v=5", "./js/supabase-config.js?v=5"]) {
+for (const asset of [
+  "./index.html",
+  "./css/style.css?v=5",
+  "./js/app.js?v=6",
+  "./js/share-rows.mjs?v=1",
+  "./js/supabase-config.js?v=5",
+]) {
   assert.ok(sw.includes(JSON.stringify(asset)), `service worker missing ${asset}`);
 }
+assert.match(html, /<script src=["']js\/app\.js\?v=6["']><\/script>/, "HTML must load the current app bundle");
 console.log("static contract passed");
