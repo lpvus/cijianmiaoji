@@ -86,6 +86,21 @@
 - 数据按登录账号隔离（每人一行），其他人即使打开网站也看不到你的数据；
 - 电脑上继续双击 index.html 使用也完全可以（离线优先，配置同步后自动云端备份）。
 
+## 本项目部署
+
+- Cloudflare Pages 生产地址：<https://cijianmiaoji.pages.dev>
+- 本次生产部署快照：<https://1a6c66c6.cijianmiaoji.pages.dev>
+- 本地预览：在仓库根目录运行 `python -m http.server 4173 --bind 127.0.0.1`，再打开 <http://127.0.0.1:4173>。
+- 数据库初始化：在目标 Supabase 项目的 SQL Editor 中执行 [`supabase/schema.sql`](supabase/schema.sql)。
+
+更新发布时，先运行 `node tests/static-contract.mjs`，再准备只包含 `index.html`、`css/`、`js/`、`icons/`、`manifest.webmanifest` 和 `sw.js` 的生产静态目录。可以在 Cloudflare Dashboard 的 **Workers & Pages → cijianmiaoji → Create deployment** 中 Direct Upload 该目录或 ZIP；也可以在完成 Cloudflare 官方 OAuth 登录后运行：
+
+```powershell
+npx wrangler pages deploy <生产静态目录> --project-name cijianmiaoji --branch main
+```
+
+不要把 `.git`、`.superpowers`、`docs`、`tests`、`supabase`、测试账号或私密令牌放进上传目录。发布后必须使用 Cloudflare 实际返回的地址检查 `/`、`/sw.js` 和 `/manifest.webmanifest` 均为 HTTP 200。
+
 ## 目录结构
 
 ```text
