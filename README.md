@@ -74,7 +74,7 @@
 
 1. 打开 [supabase.com](https://supabase.com) 注册账号并创建项目（选 Free 档）；
 2. 左侧 **Authentication → Sign In / Providers**，确认 **Email** 提供商已启用（默认开启）；建议顺手关掉 Email 的 **Confirm email** 开关，这样注册后立刻就能登录；
-3. 打开 [`supabase/schema.sql`](supabase/schema.sql)，复制完整内容到左侧 **SQL Editor** → New query 并运行。该脚本可重复执行，同时建立云端同步、共享妙计、点赞和反馈所需的数据表、行级安全策略与 RPC；
+3. 打开 [`supabase/schema.sql`](supabase/schema.sql)，复制完整内容到左侧 **SQL Editor** → New query 并运行。该脚本面向新项目；对先前由本脚本创建且表结构兼容的项目也可重复执行。脚本同时建立云端同步、共享妙计、点赞和反馈所需的数据表、权限、行级安全策略与 RPC；若项目已有同名但结构不同的表，请先迁移到脚本定义的结构；
 
 4. 把 `js/supabase-config.js` 里的 URL 和 key 换成你自己项目的（当前文件里已内置你的项目配置，可跳过）；
 5. 电脑上打开网站 → 设置 → 账号与云端同步 → 注册/登录 → 点「立即同步」（把你电脑上的数据上传到你的账号）；

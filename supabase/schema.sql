@@ -31,11 +31,24 @@ alter table public.feedback enable row level security;
 
 revoke all on table public.user_data, public.note_shares, public.feedback from anon, authenticated;
 grant select, insert, update, delete on table public.user_data to authenticated;
-grant select, insert, update, delete on table public.note_shares to authenticated;
+grant select, delete on table public.note_shares to authenticated;
+grant insert (user_id, note_id, word_key, text) on table public.note_shares to authenticated;
+grant update (user_id, note_id, word_key, text) on table public.note_shares to authenticated;
 grant insert on table public.feedback to authenticated;
 
-revoke all on sequence public.feedback_id_seq from anon, authenticated;
-grant usage on sequence public.feedback_id_seq to authenticated;
+do $sequence_grants$
+declare
+  feedback_id_sequence regclass;
+begin
+  feedback_id_sequence := pg_get_serial_sequence('public.feedback', 'id')::regclass;
+  if feedback_id_sequence is null then
+    raise exception 'public.feedback.id must use an identity sequence';
+  end if;
+
+  execute format('revoke all on sequence %s from anon, authenticated', feedback_id_sequence);
+  execute format('grant usage on sequence %s to authenticated', feedback_id_sequence);
+end;
+$sequence_grants$;
 
 drop policy if exists "shared row for authenticated users" on public.user_data;
 drop policy if exists "own row" on public.user_data;

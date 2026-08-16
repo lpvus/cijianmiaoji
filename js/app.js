@@ -360,7 +360,8 @@
       const shareOn = getSetting("shareNotes") === true;
       const uid = authSession.user.id;
       if (!shareOn) {
-        await sb.from("note_shares").delete().eq("user_id", uid);
+        const { error: deleteAllError } = await sb.from("note_shares").delete().eq("user_id", uid);
+        if (deleteAllError) throw deleteAllError;
         const st = $("#shareStatus");
         if (st) st.textContent = "未开启";
         return;
@@ -379,11 +380,18 @@
           rows.push({ note_id: noteId, word_key: key, text: it.t, user_id: uid });
         });
       }
-      const { data: existing } = await sb.from("note_shares").select("note_id").eq("user_id", uid);
+      const { data: existing, error: selectError } = await sb.from("note_shares").select("note_id").eq("user_id", uid);
+      if (selectError) throw selectError;
       const keep = new Set(rows.map((r) => r.note_id));
       const del = (existing || []).filter((r) => !keep.has(r.note_id)).map((r) => r.note_id);
-      if (del.length) await sb.from("note_shares").delete().eq("user_id", uid).in("note_id", del);
-      if (rows.length) await sb.from("note_shares").upsert(rows, { onConflict: "user_id,note_id" });
+      if (del.length) {
+        const { error: deleteStaleError } = await sb.from("note_shares").delete().eq("user_id", uid).in("note_id", del);
+        if (deleteStaleError) throw deleteStaleError;
+      }
+      if (rows.length) {
+        const { error: upsertError } = await sb.from("note_shares").upsert(rows, { onConflict: "user_id,note_id" });
+        if (upsertError) throw upsertError;
+      }
       const st = $("#shareStatus");
       if (st) st.textContent = `已共享 ${rows.length} 条`;
     } catch (e) {
@@ -445,7 +453,8 @@
     $$(".pool-like", $("#poolList")).forEach((b) =>
       b.addEventListener("click", async () => {
         try {
-          await sb.rpc("toggle_share_like", { p_share_id: b.dataset.id, p_user_id: uid });
+          const { error: likeError } = await sb.rpc("toggle_share_like", { p_share_id: b.dataset.id, p_user_id: uid });
+          if (likeError) throw likeError;
           openPool(wordKey);
         } catch (e) {
           $("#poolHint").textContent = "点赞失败：" + (e.message || e);
