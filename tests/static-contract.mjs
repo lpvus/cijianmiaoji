@@ -15,12 +15,17 @@ for (const symbol of ["authLogin", "authSignup", "syncNow", "syncShares", "openP
 for (const asset of [
   "./index.html",
   "./css/style.css?v=5",
-  "./js/app.js?v=7",
-  "./js/share-rows.mjs?v=1",
+  "./js/app.js?v=8",
+  "./js/share-rows.mjs?v=2",
   "./js/sync-policy.mjs?v=1",
   "./js/supabase-config.js?v=5",
 ]) {
   assert.ok(sw.includes(JSON.stringify(asset)), `service worker missing ${asset}`);
 }
-assert.match(html, /<script src=["']js\/app\.js\?v=7["']><\/script>/, "HTML must load the current app bundle");
+assert.match(html, /<script src=["']js\/app\.js\?v=8["']><\/script>/, "HTML must load the current app bundle");
+assert.match(
+  app,
+  /buildShareRows\(notes,\s*uid,\s*simpleHash,\s*window\.BOOK_NOTES\s*\|\|\s*\{\}\)/,
+  "shared-note filtering must receive the book-note provenance map"
+);
 console.log("static contract passed");

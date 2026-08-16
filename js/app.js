@@ -378,8 +378,8 @@
         return;
       }
       const notes = getNotes();
-      const { buildShareRows } = await import("./share-rows.mjs?v=1");
-      const rows = buildShareRows(notes, uid, simpleHash);
+      const { buildShareRows } = await import("./share-rows.mjs?v=2");
+      const rows = buildShareRows(notes, uid, simpleHash, window.BOOK_NOTES || {});
       const { data: existing, error: selectError } = await sb.from("note_shares").select("note_id").eq("user_id", uid);
       if (selectError) throw selectError;
       const keep = new Set(rows.map((r) => r.note_id));

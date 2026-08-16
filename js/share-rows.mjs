@@ -1,4 +1,4 @@
-export function buildShareRows(notes, userId, hash) {
+export function buildShareRows(notes, userId, hash, bookNotes = {}) {
   const rows = [];
   const seen = new Set();
 
@@ -6,8 +6,11 @@ export function buildShareRows(notes, userId, hash) {
     if (!entry || !Array.isArray(entry.items) || !wordKey.includes(":")) continue;
     for (const item of entry.items) {
       const text = String((item && item.t) || "").trim();
-      // Legacy user notes use an o* id with at=0; book notes use b* with at=0.
-      const userAuthored = String((item && item.id) || "").startsWith("o") || Number(item.at) > 0;
+      const id = String((item && item.id) || "");
+      const at = Number((item && item.at) || 0);
+      const bookText = String(bookNotes[wordKey] || "").trim();
+      const isLegacy = id.startsWith("o");
+      const userAuthored = at > 0 || (isLegacy && (!bookText || text !== bookText));
       if (!text || !userAuthored) continue;
       const noteId = "h" + hash(wordKey + "::" + text);
       const rowKey = wordKey + "::" + noteId;
