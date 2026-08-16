@@ -472,8 +472,7 @@
     if (!m) return;
     const cur = $("#siteCurrentHint");
     if (cur) {
-      const host = location.hostname || "";
-      cur.textContent = host.includes("dpdns.org") ? "你当前正在访问备用站。" : "你当前正在访问主站。";
+      cur.textContent = "你当前正在访问主站。";
     }
     m.style.display = "flex";
   }

@@ -23,6 +23,12 @@ for (const asset of [
   assert.ok(sw.includes(JSON.stringify(asset)), `service worker missing ${asset}`);
 }
 assert.match(html, /<script src=["']js\/app\.js\?v=8["']><\/script>/, "HTML must load the current app bundle");
+assert.match(html, /https:\/\/cijianmiaoji\.pages\.dev/, "HTML must link to the Cloudflare Pages main site");
+for (const legacyDomain of ["cijianmiaoji.netlify.app", "001100.dpdns.org"]) {
+  assert.ok(!html.includes(legacyDomain), `HTML must not contain legacy domain ${legacyDomain}`);
+  assert.ok(!app.includes(legacyDomain), `app bundle must not contain legacy domain ${legacyDomain}`);
+}
+assert.ok(!app.includes('host.includes("dpdns.org")'), "site notice must not branch on the legacy backup hostname");
 assert.match(
   app,
   /buildShareRows\(notes,\s*uid,\s*simpleHash,\s*window\.BOOK_NOTES\s*\|\|\s*\{\}\)/,
