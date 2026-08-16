@@ -6,8 +6,9 @@ export function buildShareRows(notes, userId, hash) {
     if (!entry || !Array.isArray(entry.items) || !wordKey.includes(":")) continue;
     for (const item of entry.items) {
       const text = String((item && item.t) || "").trim();
-      // Book notes use at=0. Only notes created or edited by the user are theirs to share.
-      if (!text || !Number(item.at)) continue;
+      // Legacy user notes use an o* id with at=0; book notes use b* with at=0.
+      const userAuthored = String((item && item.id) || "").startsWith("o") || Number(item.at) > 0;
+      if (!text || !userAuthored) continue;
       const noteId = "h" + hash(wordKey + "::" + text);
       const rowKey = wordKey + "::" + noteId;
       if (seen.has(rowKey)) continue;

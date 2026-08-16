@@ -169,10 +169,16 @@
   function scheduleAutoSync() {
     clearTimeout(autoSyncTimer);
     autoSyncTimer = setTimeout(() => {
-      if (navigator.onLine !== false && syncConfig() && syncConfig().url && syncConfig().key) {
-        syncNow().catch(() => {});
-      }
+      cloudSyncAllowed()
+        .then((allowed) => {
+          if (allowed) syncNow().catch(() => {});
+        })
+        .catch(() => {});
     }, 4000);
+  }
+  async function cloudSyncAllowed() {
+    const { canStartSync } = await import("./sync-policy.mjs?v=1");
+    return canStartSync({ online: navigator.onLine !== false, config: syncConfig() });
   }
   async function getSupabase() {
     if (supabaseClient) return supabaseClient;
@@ -309,6 +315,10 @@
   async function syncNow(opts) {
     if (syncing) return;
     const cfg = syncConfig();
+    if (!(await cloudSyncAllowed())) {
+      setSyncStatus(navigator.onLine === false ? "当前离线，联网后同步" : "未配置同步服务");
+      return;
+    }
     if (!cfg || !cfg.url || !cfg.key) {
       setSyncStatus("未配置同步服务");
       return;
@@ -352,6 +362,7 @@
   }
   async function syncShares() {
     if (!authSession || !authSession.user) return;
+    if (!(await cloudSyncAllowed())) return;
     if (shareSyncing) return;
     shareSyncing = true;
     try {
