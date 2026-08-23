@@ -40,6 +40,16 @@ for (const renderer of ["renderImmWord", "renderCard", "renderMaskList", "render
 }
 assert.match(
   app,
+  /if \(!immList\.length\) \{\s*const douyinImmerse = \$\("#douyinImmerse"\);\s*douyinImmerse\.dataset\.douyinWord = "";\s*douyinImmerse\.title = "当前没有可搜索的单词";\s*douyinImmerse\.setAttribute\("aria-label", "当前没有可搜索的单词"\);\s*douyinImmerse\.disabled = true;\s*douyinImmerse\.hidden = true;[\s\S]*?return;/,
+  "an empty immersive scope must clear and deactivate the previously rendered Douyin word"
+);
+assert.match(
+  app,
+  /const douyinImmerse = \$\("#douyinImmerse"\);\s*douyinImmerse\.hidden = false;\s*douyinImmerse\.disabled = false;\s*douyinImmerse\.dataset\.douyinWord = w\.w;/,
+  "a populated immersive scope must restore the current-word Douyin control"
+);
+assert.match(
+  app,
   /q\.type === "w2m"[\s\S]*?data-douyin-word[\s\S]*?: answered \?[\s\S]*?data-douyin-word[\s\S]*?: ""/,
   "meaning-to-word questions must reveal Douyin search only after an answer"
 );

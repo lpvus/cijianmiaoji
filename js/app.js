@@ -1364,6 +1364,12 @@
 
   function renderImmWord() {
     if (!immList.length) {
+      const douyinImmerse = $("#douyinImmerse");
+      douyinImmerse.dataset.douyinWord = "";
+      douyinImmerse.title = "当前没有可搜索的单词";
+      douyinImmerse.setAttribute("aria-label", "当前没有可搜索的单词");
+      douyinImmerse.disabled = true;
+      douyinImmerse.hidden = true;
       $("#wordBig").textContent = "暂无单词";
       return;
     }
@@ -1379,6 +1385,8 @@
     ].join("");
     $("#wordBig").textContent = w.w;
     const douyinImmerse = $("#douyinImmerse");
+    douyinImmerse.hidden = false;
+    douyinImmerse.disabled = false;
     douyinImmerse.dataset.douyinWord = w.w;
     douyinImmerse.title = "在抖音搜索 " + w.w;
     douyinImmerse.setAttribute("aria-label", "在抖音搜索 " + w.w);
