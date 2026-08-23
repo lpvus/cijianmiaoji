@@ -28,17 +28,26 @@ export function openDouyinSearch(value, options = {}) {
     ?? (typeof navigator !== "undefined" ? navigator : {});
 
   if (!isMobileDouyinDevice(navigatorRef)) {
-    let opened = false;
+    let popup = null;
     try {
-      opened = Boolean(windowRef.open(
-        links.webUrl,
-        "_blank",
-        "noopener,noreferrer",
-      ));
+      popup = windowRef.open("", "_blank");
+      if (popup) {
+        popup.opener = null;
+        const referrerMeta = popup.document.createElement("meta");
+        referrerMeta.name = "referrer";
+        referrerMeta.content = "no-referrer";
+        popup.document.head.append(referrerMeta);
+        popup.location.replace(links.webUrl);
+        return { launched: true, links };
+      }
     } catch {
-      opened = false;
+      try {
+        popup?.close();
+      } catch {
+        // Best effort: same-tab fallback must still run if popup cleanup fails.
+      }
     }
-    if (!opened) windowRef.location.assign(links.webUrl);
+    windowRef.location.assign(links.webUrl);
     return { launched: true, links };
   }
 

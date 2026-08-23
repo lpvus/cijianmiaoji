@@ -32,9 +32,24 @@ assert.equal(isMobileDouyinDevice({
 }), false);
 assert.equal(isMobileDouyinDevice({ userAgent: "" }), false);
 
-const desktopEffects = { opens: [], navigations: [], timers: 0, listeners: 0 };
+const desktopEffects = {
+  opens: [],
+  navigations: [],
+  popupNavigations: [],
+  popupMeta: [],
+  timers: 0,
+  listeners: 0,
+};
+const desktopPopup = {
+  opener: { source: "learning tab" },
+  document: {
+    createElement: (tagName) => ({ tagName }),
+    head: { append: (element) => desktopEffects.popupMeta.push(element) },
+  },
+  location: { replace: (url) => desktopEffects.popupNavigations.push(url) },
+};
 const desktopWindowRef = {
-  open: (...args) => (desktopEffects.opens.push(args), {}),
+  open: (...args) => (desktopEffects.opens.push(args), desktopPopup),
   location: { assign: (url) => desktopEffects.navigations.push(url) },
   setTimeout: () => (desktopEffects.timers += 1),
 };
@@ -54,10 +69,18 @@ const desktopResult = openDouyinSearch("ice cream", {
 });
 assert.equal(desktopResult.launched, true);
 assert.deepEqual(desktopEffects.opens, [[
-  "https://www.douyin.com/search/ice%20cream",
+  "",
   "_blank",
-  "noopener,noreferrer",
 ]]);
+assert.equal(desktopPopup.opener, null);
+assert.deepEqual(desktopEffects.popupMeta, [{
+  tagName: "meta",
+  name: "referrer",
+  content: "no-referrer",
+}]);
+assert.deepEqual(desktopEffects.popupNavigations, [
+  "https://www.douyin.com/search/ice%20cream",
+]);
 assert.deepEqual(desktopEffects.navigations, []);
 assert.equal(desktopEffects.timers, 0);
 assert.equal(desktopEffects.listeners, 0);
@@ -76,6 +99,53 @@ for (const open of [() => null, () => { throw new Error("blocked"); }]) {
     navigatorRef: desktopNavigatorRef,
   });
   assert.equal(result.launched, true);
+  assert.deepEqual(effects.navigations, ["https://www.douyin.com/search/ambition"]);
+  assert.equal(effects.timers, 0);
+  assert.equal(effects.listeners, 0);
+}
+
+for (const failPopup of [
+  () => {
+    const popup = {
+      document: {
+        createElement: () => { throw new Error("security preparation failed"); },
+      },
+      location: { replace: () => assert.fail("must not navigate an unprepared popup") },
+      close: () => { popup.closeCalls += 1; },
+      closeCalls: 0,
+    };
+    return popup;
+  },
+  () => {
+    const popup = {
+      document: {
+        createElement: () => ({ tagName: "meta" }),
+        head: { append: () => {} },
+      },
+      location: { replace: () => { throw new Error("popup navigation failed"); } },
+      close: () => { popup.closeCalls += 1; },
+      closeCalls: 0,
+    };
+    return popup;
+  },
+]) {
+  const effects = { opens: [], navigations: [], timers: 0, listeners: 0 };
+  const popup = failPopup();
+  const windowRef = {
+    open: (...args) => (effects.opens.push(args), popup),
+    location: { assign: (url) => effects.navigations.push(url) },
+    setTimeout: () => (effects.timers += 1),
+  };
+  const documentRef = { addEventListener: () => (effects.listeners += 1) };
+  const result = openDouyinSearch("ambition", {
+    windowRef,
+    documentRef,
+    navigatorRef: desktopNavigatorRef,
+  });
+  assert.equal(result.launched, true);
+  assert.deepEqual(effects.opens, [["", "_blank"]]);
+  assert.equal(popup.opener, null);
+  assert.equal(popup.closeCalls, 1);
   assert.deepEqual(effects.navigations, ["https://www.douyin.com/search/ambition"]);
   assert.equal(effects.timers, 0);
   assert.equal(effects.listeners, 0);

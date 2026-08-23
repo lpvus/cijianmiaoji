@@ -26,12 +26,12 @@
 电脑端同步调用：
 
 ```text
-window.open(webUrl, "_blank", "noopener,noreferrer")
+popup = window.open("", "_blank")
 ```
 
-调用发生在用户点击事件的同步链路中，以降低被浏览器拦截的概率。电脑端不会访问 `snssdk1128://`，不会创建 1500ms 定时器，也不会注册 `visibilitychange` 监听器。
+调用发生在用户点击事件的同步链路中，以降低被浏览器拦截的概率，并以是否取得真实窗口句柄判断新标签页是否创建成功。取得句柄后，在同源空白页仍可操作时，依次把 `popup.opener` 设为 `null`、在空白文档中安装 `meta[name="referrer"][content="no-referrer"]`，最后调用 `popup.location.replace(webUrl)` 导航到抖音网页。电脑端不会访问 `snssdk1128://`，不会创建 1500ms 定时器，也不会注册 `visibilitychange` 监听器。
 
-如果 `window.open` 抛出异常或返回空值，说明新标签页未成功创建；此时使用 `window.location.assign(webUrl)` 在当前标签页打开同一个网页搜索，确保按钮仍然可用。
+不能直接用 `window.open(webUrl, "_blank", "noopener,noreferrer")` 的返回值判断弹窗是否成功，因为 HTML Standard 规定启用 `noopener` 时，即使已创建新浏览上下文也返回 `null`。如果空白窗口调用抛出异常、返回空值，或断开 opener、安装 referrer policy、导航空白窗口中的任何一步失败，则使用 `window.location.assign(webUrl)` 在当前标签页打开同一个网页搜索，确保按钮仍然可用。空白窗口已经创建但后续失败时，先尽力关闭它；即使关闭操作也失败，仍继续当前标签页回退。
 
 ### 手机和平板
 
@@ -67,15 +67,16 @@ isMobileDouyinDevice(navigatorRef): boolean
 ## 隐私与安全
 
 - 仍只向抖音发送用户点击的完整英文单词，不附加账号、邮箱、Supabase、妙计、学习进度或其他状态。
-- 电脑端新标签页使用 `noopener,noreferrer`，不给抖音页面原网站窗口控制能力，也不发送来源页 URL。
+- 电脑端在同源空白窗口导航前显式把 `popup.opener` 设为 `null`，不给抖音页面原网站窗口控制能力；同时安装 `meta[name="referrer"][content="no-referrer"]`，使随后由 `location.replace` 发起的抖音导航不发送来源页 URL。
+- 只有完成上述两项安全准备后才导航空白窗口；准备或导航失败时尽力关闭空白窗口并改用当前标签页回退，不留下未完成安全准备的外部导航。
 - 不调用抖音 API，不抓取或嵌入搜索结果。
 
 ## 测试
 
 扩展 `tests/douyin-search-contract.mjs`，在修改生产代码前观察失败，并覆盖：
 
-1. Windows/macOS/Linux 桌面环境只调用一次 `window.open` 打开网页 URL，不访问 App Scheme，不创建定时器。
-2. 新标签页被拦截或 `window.open` 抛出异常时，当前标签页打开网页 URL。
+1. Windows/macOS/Linux 桌面环境只调用一次 `window.open("", "_blank")` 预留空白窗口，断开 opener、安装 no-referrer meta 后通过 `location.replace` 打开网页 URL；原学习页不导航，不访问 App Scheme，不创建定时器或监听器。
+2. 新标签页被拦截、`window.open` 抛出异常、安全准备失败或空白窗口导航失败时，尽力关闭已创建的空白窗口，并在当前标签页打开网页 URL。
 3. Android 手机和平板继续走 App 优先和 1500ms 网页回退。
 4. 普通 iPad UA 和 `MacIntel + maxTouchPoints > 1` 的桌面模式 iPad继续按移动设备处理。
 5. 页面隐藏时取消移动端网页回退。
