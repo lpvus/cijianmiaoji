@@ -1,5 +1,5 @@
 /* 词间妙记 · Service Worker（离线缓存） */
-const CACHE = "wbm-cache-v8";
+const CACHE = "wbm-cache-v9";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,7 +7,8 @@ const ASSETS = [
   "./js/words.js?v=5",
   "./js/book-notes.js?v=5",
   "./js/supabase-config.js?v=5",
-  "./js/app.js?v=8",
+  "./js/app.js?v=9",
+  "./js/douyin-search.mjs?v=1",
   "./js/share-rows.mjs?v=2",
   "./js/sync-policy.mjs?v=1",
   "./manifest.webmanifest?v=5",
