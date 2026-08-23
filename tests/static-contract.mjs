@@ -5,6 +5,7 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 const html = read("index.html");
 const app = read("js/app.js");
 const sw = read("sw.js");
+const douyinSearch = read("js/douyin-search.mjs");
 
 for (const id of ["shareToggle", "syncNowBtn", "syncPushBtn", "authArea", "feedbackInput"]) {
   assert.match(html, new RegExp(`id=["']${id}["']`), `missing #${id}`);
@@ -23,6 +24,33 @@ for (const asset of [
   assert.ok(sw.includes(JSON.stringify(asset)), `service worker missing ${asset}`);
 }
 assert.match(html, /<script src=["']js\/app\.js\?v=8["']><\/script>/, "HTML must load the current app bundle");
+assert.match(html, /<script type="module" src="js\/douyin-search\.mjs\?v=1"><\/script>/, "HTML must load the Douyin search module");
+assert.match(html, /id="douyinImmerse"/, "HTML must include the immersive Douyin button");
+assert.match(html, /id="douyinCard"/, "HTML must include the card Douyin button");
+assert.match(app, /data-douyin-word/g, "study word renderers must provide a Douyin search word");
+assert.match(app, /DouyinSearch\.openDouyinSearch/, "Douyin controls must call the installed launcher");
+for (const renderer of ["renderImmWord", "renderCard", "renderMaskList", "renderQuizQ", "renderFav", "drawNotes"]) {
+  assert.match(app, new RegExp(`function\\s+${renderer}\\b`), `missing ${renderer}`);
+}
+assert.match(
+  app,
+  /q\.type === "w2m"[\s\S]*?data-douyin-word[\s\S]*?: answered \?[\s\S]*?data-douyin-word[\s\S]*?: ""/,
+  "meaning-to-word questions must reveal Douyin search only after an answer"
+);
+
+const nodeDouyinSearch = await import(new URL("../js/douyin-search.mjs", import.meta.url));
+assert.equal(typeof nodeDouyinSearch.openDouyinSearch, "function", "Douyin module must remain importable in Node");
+const previousWindow = globalThis.window;
+const testWindow = {};
+try {
+  globalThis.window = testWindow;
+  await import(`data:text/javascript;base64,${Buffer.from(douyinSearch).toString("base64")}`);
+  assert.equal(typeof testWindow.DouyinSearch?.buildDouyinLinks, "function", "Douyin module must expose its link builder on window");
+  assert.equal(typeof testWindow.DouyinSearch?.openDouyinSearch, "function", "Douyin module must expose its launcher on window");
+} finally {
+  if (previousWindow === undefined) delete globalThis.window;
+  else globalThis.window = previousWindow;
+}
 assert.match(html, /https:\/\/cijianmiaoji\.pages\.dev/, "HTML must link to the Cloudflare Pages main site");
 for (const legacyDomain of ["cijianmiaoji.netlify.app", "001100.dpdns.org"]) {
   assert.ok(!html.includes(legacyDomain), `HTML must not contain legacy domain ${legacyDomain}`);

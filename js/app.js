@@ -864,6 +864,13 @@
   }
 
   document.addEventListener("click", (e) => {
+    const douyinBtn = e.target.closest("[data-douyin-word]");
+    if (douyinBtn) {
+      e.preventDefault();
+      const word = douyinBtn.dataset.douyinWord;
+      if (word && window.DouyinSearch) window.DouyinSearch.openDouyinSearch(word);
+      return;
+    }
     const poolBtn = e.target.closest("[data-pool]");
     if (poolBtn) {
       openPool(poolBtn.dataset.pool);
@@ -1371,6 +1378,10 @@
       progress[key] ? `<span class="tag">${progress[key].s === "m" ? "已掌握" : "学习中"}</span>` : "",
     ].join("");
     $("#wordBig").textContent = w.w;
+    const douyinImmerse = $("#douyinImmerse");
+    douyinImmerse.dataset.douyinWord = w.w;
+    douyinImmerse.title = "在抖音搜索 " + w.w;
+    douyinImmerse.setAttribute("aria-label", "在抖音搜索 " + w.w);
     const prevW = navState.immIndex > 0 ? immList[navState.immIndex - 1] : null;
     const nextW = navState.immIndex < immList.length - 1 ? immList[navState.immIndex + 1] : null;
     $("#immWordPrev").textContent = prevW ? `← ${prevW.w}` : "← 上一个";
@@ -1557,6 +1568,10 @@
     $("#cardMeta").textContent = `Lesson ${w.lesson} · Unit ${w.unit} · ${w.g || ""}`;
     $("#cardMetaBack").textContent = `Lesson ${w.lesson} · Unit ${w.unit}`;
     $("#cardWord").textContent = w.w;
+    const douyinCard = $("#douyinCard");
+    douyinCard.dataset.douyinWord = w.w;
+    douyinCard.title = "在抖音搜索 " + w.w;
+    douyinCard.setAttribute("aria-label", "在抖音搜索 " + w.w);
     $("#cardMeaning").textContent = w.m || "（无释义）";
     $("#cardNote").textContent = getNote(key) ? "✍️ 我的妙计：" + getNote(key) : "";
     $("#cardNote").style.display = getNote(key) ? "" : "none";
@@ -1657,6 +1672,7 @@
               <span class="mask-num">${i + 1}</span>
               <b>${esc(w.w)}</b>
               <span class="mask-cover">点击显示</span>
+              <button class="external-search-btn sm" data-douyin-word="${esc(w.w)}" title="在抖音搜索 ${esc(w.w)}" aria-label="在抖音搜索 ${esc(w.w)}">🎵</button>
             </div>
             <div class="mask-meaning ${maskCn ? "masked" : ""}" data-side="meaning">
               <span class="mask-cover">点击显示</span>
@@ -1678,6 +1694,7 @@
       const key = wKey(w);
       $$("[data-side]", row).forEach((side) => {
         side.addEventListener("click", (e) => {
+          if (e.target.closest("[data-douyin-word]")) return;
           if (side.dataset.side === maskSide) {
             if (side.classList.contains("masked")) {
               side.classList.remove("masked");
@@ -1798,7 +1815,7 @@
       body.innerHTML = `
         <div class="quiz-end">
           <h3>完成！${quizScore} / ${quizQ.length}（${pct}%）</h3>
-          ${quizWrong.length ? `<div class="wrong-list"><p class="sub" style="margin-bottom:8px">答错的单词（已标记为待复习）：</p>` + quizWrong.map((x) => `<div class="wrong-row"><span class="w">${esc(x.w)}</span><span class="m">${esc(x.m)}</span></div>`).join("") + `</div>` : `<p class="sub">全部答对，太棒了 🌸</p>`}
+          ${quizWrong.length ? `<div class="wrong-list"><p class="sub" style="margin-bottom:8px">答错的单词（已标记为待复习）：</p>` + quizWrong.map((x) => `<div class="wrong-row"><span class="w">${esc(x.w)}</span><button class="external-search-btn sm" data-douyin-word="${esc(x.w)}" title="在抖音搜索 ${esc(x.w)}" aria-label="在抖音搜索 ${esc(x.w)}">🎵</button><span class="m">${esc(x.m)}</span></div>`).join("") + `</div>` : `<p class="sub">全部答对，太棒了 🌸</p>`}
           <button class="btn primary" id="quizRetry">再来一次</button>
           <button class="btn soft" id="quizWrongRetry" style="display:${quizWrong.length ? "" : "none"}">只测错词</button>
         </div>`;
@@ -1828,7 +1845,7 @@
         <span class="quiz-score">得分 ${quizScore}</span>
       </div>
       <p class="quiz-q-sub">${q.type === "w2m" ? "请选出该单词的释义" : "请选出对应的单词"}</p>
-      <div class="quiz-q">${esc(q.type === "w2m" ? q.w.w : q.w.m)}${q.type === "w2m" ? `<button class="speak-btn sm" data-speak="${esc(q.w.w)}">🔊</button>` : ""}</div>
+      <div class="quiz-q">${esc(q.type === "w2m" ? q.w.w : q.w.m)}${q.type === "w2m" ? `<button class="speak-btn sm" data-speak="${esc(q.w.w)}">🔊</button><button class="external-search-btn sm" data-douyin-word="${esc(q.w.w)}" title="在抖音搜索 ${esc(q.w.w)}" aria-label="在抖音搜索 ${esc(q.w.w)}">🎵</button>` : answered ? `<button class="external-search-btn sm" data-douyin-word="${esc(q.w.w)}" title="在抖音搜索 ${esc(q.w.w)}" aria-label="在抖音搜索 ${esc(q.w.w)}">🎵</button>` : ""}</div>
       <div class="quiz-opts">${q.opts
         .map((o, i) => {
           let cls = "quiz-opt";
@@ -1913,6 +1930,7 @@
             <div class="word-speak-line">
               <div class="fw" data-key="${esc(key)}">${esc(w.w)}</div>
               <button class="speak-btn sm" data-speak="${esc(w.w)}">🔊</button>
+              <button class="external-search-btn sm" data-douyin-word="${esc(w.w)}" title="在抖音搜索 ${esc(w.w)}" aria-label="在抖音搜索 ${esc(w.w)}">🎵</button>
               <button class="speak-btn sm" data-pool="${esc(key)}">🌐</button>
             </div>
             <div class="nm-tag">Lesson ${w.lesson} · Unit ${w.unit}</div>
@@ -2019,6 +2037,7 @@
             <div class="word-speak-line">
               <div class="nw" data-key="${esc(key)}">${esc(w.w)}</div>
               <button class="speak-btn sm" data-speak="${esc(w.w)}">🔊</button>
+              <button class="external-search-btn sm" data-douyin-word="${esc(w.w)}" title="在抖音搜索 ${esc(w.w)}" aria-label="在抖音搜索 ${esc(w.w)}">🎵</button>
               <button class="speak-btn sm" data-pool="${esc(key)}">🌐</button>
             </div>
             <div class="nm-tag">L${w.lesson} · U${w.unit} · ${has ? "✍️ 已填" : "未填"}</div>

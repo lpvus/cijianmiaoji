@@ -419,6 +419,23 @@ main { max-width: 1120px; margin: 0 auto; padding: 26px 20px 80px; }
 }
 .speak-btn:hover { background: var(--pink-200); transform: scale(1.08); }
 .speak-btn.sm { width: 30px; height: 30px; font-size: 14px; border-radius: 9px; }
+.external-search-btn {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--pink-200);
+  border-radius: 12px;
+  background: var(--pink-50);
+  color: var(--pink-600);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+}
+.external-search-btn:hover { background: var(--pink-200); transform: translateY(-1px); }
+.external-search-btn:focus-visible { outline: 3px solid var(--pink-300); outline-offset: 2px; }
+.external-search-btn.sm { width: 30px; min-height: 30px; padding: 0; font-size: 14px; border-radius: 9px; }
 body.no-tts .speak-btn, body.no-tts [data-speak] { display: none !important; }
 .meaning-box {
   margin: 14px 0;
@@ -743,6 +760,7 @@ body.no-tts .speak-btn, body.no-tts [data-speak] { display: none !important; }
 .mask-word b { font-size: 17px; }
 .mask-num { position: absolute; left: 10px; color: var(--ink-faint); font-size: 12px; }
 .mask-word.masked b { opacity: 0; }
+.mask-word.masked .external-search-btn { display: none; }
 .mask-word:not(.masked) .mask-cover { display: none; }
 .mask-meaning.masked .mask-text { display: none; }
 .mask-meaning:not(.masked) .mask-cover { display: none; }

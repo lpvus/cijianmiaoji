@@ -44,3 +44,7 @@ export function openDouyinSearch(value, options = {}) {
   }
   return { launched: true, links, cancel };
 }
+
+if (typeof window !== "undefined") {
+  window.DouyinSearch = { buildDouyinLinks, openDouyinSearch };
+}
