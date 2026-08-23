@@ -20,17 +20,17 @@ for (const asset of [
   "./js/share-rows.mjs?v=2",
   "./js/sync-policy.mjs?v=1",
   "./js/supabase-config.js?v=5",
-  "./js/douyin-search.mjs?v=1",
+  "./js/douyin-search.mjs?v=2",
 ]) {
   assert.ok(sw.includes(JSON.stringify(asset)), `service worker missing ${asset}`);
 }
 assert.match(html, /js\/app\.js\?v=9/);
-assert.match(sw, /const CACHE = "wbm-cache-v9"/);
-for (const asset of ["./js/app.js?v=9", "./js/douyin-search.mjs?v=1"]) {
+assert.match(sw, /const CACHE = "wbm-cache-v10"/);
+for (const asset of ["./js/app.js?v=9", "./js/douyin-search.mjs?v=2"]) {
   assert.ok(sw.includes(JSON.stringify(asset)), `service worker missing ${asset}`);
 }
 assert.match(html, /<script src=["']js\/app\.js\?v=9["']><\/script>/, "HTML must load the current app bundle");
-assert.match(html, /<script type="module" src="js\/douyin-search\.mjs\?v=1"><\/script>/, "HTML must load the Douyin search module");
+assert.match(html, /<script type="module" src="js\/douyin-search\.mjs\?v=2"><\/script>/, "HTML must load the Douyin search module");
 assert.match(html, /id="douyinImmerse"/, "HTML must include the immersive Douyin button");
 assert.match(html, /id="douyinCard"/, "HTML must include the card Douyin button");
 assert.match(app, /data-douyin-word/g, "study word renderers must provide a Douyin search word");
